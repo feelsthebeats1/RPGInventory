@@ -1,0 +1,58 @@
+#version: 2.0 | Do not remove this line!
+title: RPG Inventory
+
+locked.name: &cZakljucan slot
+locked.lore: &6Moras prvo da otkljucas prethodni slot!
+
+buyable.name: &aDostupan slot
+buyable.lore: &6Da kupis slot moras imati:
+buyable.money: &6 {0} para
+buyable.level: &6 {0} lvl
+
+error.fall: &cNe mozes to raditi dok letis!
+error.money: &6Da kupis ovaj slot moras imati &e{0} &6para
+error.level: &6Da kupis ovaj slot moras imati&e {0} &6lvl
+error.buyable: &6Da kupis ovaj slot moras imati {0} para. Klikni u narednih 10 sekundi da potvrdis!
+error.previous: &6Prvo odkljucaj prethodni slot!
+error.rp.denied: &cMoras dozvoliti skidanje teksture!
+error.item.level: &6Potrebno &c{0} &6levela
+error.item.class: &6Potrebna klasa &c{0}
+error.mount.owner: &6Mount je od {0}
+error.creative: &4RPGInventory can''t be used in CREATIVE game mode. Please switch to SURVIVAL.
+
+message.buyed: &aUspesno ste kupili slot
+message.perms: &cYou don''t have permission to use this command
+
+pet.name: &6{0} &7[&b{1}&7]
+pet.health: &cZivoti: &7{0}
+pet.damage: &cUdarac: &7{0}
+pet.speed: &cBrzina: &7{0} block/s
+pet.revival.yes: &bCooldown: &7{0}s
+pet.revival.no: &bDon''t revives
+pet.cooldown:  &a({0}s)
+pet.food.value: &aPunjenje: {0} HP
+pet.role.companion: Pratilac
+pet.role.mount: Mount
+mypet.egg: MyPet Egg: {0}
+
+item.level: &fPotrebno {0} level
+item.class: &fSamo za &b{0}
+item.nodrop: &7Ne gubi se na smrti
+item.left-click: &aLevi klik - {0}
+item.right-click: &aDesni klik - {0}
+item.hide: &7Statusi itema su sakriveni
+item.unbreakable: &7Neunistivi item
+
+stat.message.no_bonus: No bonus
+stat.damage: &cDamage: &7{0}
+stat.bow_damage: &cDamage (shoot): &7{0}
+stat.hand_damage: &cDamage (hand): &7{0}
+stat.armor: &3Armor: &7{0}
+stat.crit_chance: &6Crit Chance: &7{0}
+stat.crit_damage: &6Crit Damage: &7{0}
+stat.speed: &9Speed: &7{0}
+stat.jump: &9Jump: &7{0}
+
+backpack.desc: &8&oPut it in specified slot and click &fRMB
+backpack.size: &aSize: &7{0}
+backpack.limit: &cYou can''t have more than {0} backpack!

@@ -1,0 +1,58 @@
+#version: 2.0 | Do not remove this line!
+title: RPG Inventar
+
+locked.name: &cZamceny slot
+locked.lore: &6&oNejdrive musis odemknout predchozi slot
+
+buyable.name: &aDostupny slot
+buyable.lore: &6&oAby si odemkl slot musis:
+buyable.money: &6&o• mit {0} goldu
+buyable.level: &6&o• byt {0} lvl
+
+error.fall: &cYou can''t do it while you are flying
+error.money: &6Aby si mohl odemknout slot jeste potrebujes {0} gold
+error.level: &6Aby si mohl odemknout slot potrebujes {0} lvlu
+error.buyable: &6Odemknuti tohoto slotu te bude stat {0} gold. Klikni na to znova do 10 vterin aby si potvrdil odemceni.
+error.previous: &6Nejdrive odemkni predchozi sloty
+error.rp.denied: &cMusis povolit stazeni resource-packu!
+error.item.level: &6Vyzaduje &c{0} &6level
+error.item.class: &6Vyzaduje tridu &c{0}
+error.mount.owner: &6Zvire patri %
+error.creative: &4RPGInventory can''t be used in CREATIVE game mode. Please switch to SURVIVAL.
+
+message.buyed: &aUspesne jsi zakoupil slot
+message.perms: &cYou don''t have permission to use this command
+
+pet.name: {0} &f[{1}]
+pet.health: &cZivoty: &7{0}
+pet.damage: &cUtok: &7{0}
+pet.speed: &cRychlost: &7{0} block/s
+pet.revival.yes: &bOzivovaci doba: &7{0}s
+pet.revival.no: &bNeozivuje se
+pet.cooldown:  &a&o({0}s)
+pet.food.value: &aObnovi: {0} Zivota
+pet.role.companion: Spolecnik
+pet.role.mount: Jezdec
+mypet.egg: MyPet Egg: {0}
+
+item.level: &fVyzaduje {0} level
+item.class: &fJen pro &b{0}
+item.nodrop: &7Nevypadne pri smrti
+item.left-click: &aLMB - {0}
+item.right-click: &aRMB - {0}
+item.hide: &7&oItem stats are hidden
+item.unbreakable: &7Unbreakable item
+
+stat.message.no_bonus: No bonus
+stat.damage: &cUtok: &7{0}
+stat.bow_damage: &cUtok (na dalku): &7{0}
+stat.hand_damage: &cUtok (na blizko): &7{0}
+stat.armor: &3Brneni: &7{0}
+stat.crit_chance: &6Sance na kriticky utok: &7{0}
+stat.crit_damage: &6Poskozeni kritickym utokem: &7{0}
+stat.speed: &9Rychlost: &7{0}
+stat.jump: &9Skoky: &7{0}
+
+backpack.desc: &8&oPrendej ho do spravneho slotu v RPG inventari
+backpack.size: &aKapacita: &7{0}
+backpack.limit: &cYou can''t have more than {0} backpack!

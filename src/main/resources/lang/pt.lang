@@ -1,0 +1,58 @@
+#version: 2.0 | Do not remove this line!
+title: RPG Inventory
+
+locked.name: &cEspaço bloqueado
+locked.lore: &6&oDeve desbloquear o espaço anterior
+
+buyable.name: &aEspaço disponivel
+buyable.lore: &6&oPara obter este espaco deve:
+buyable.money: &6&o• ter {0} moedas
+buyable.level: &6&o• ter {0} nivel(s) de experiencia
+
+error.fall: &cNão pode fazer isso enquanto esta voando!!
+error.money: &6Ainda precisa de {0} moedas
+error.level: &6Ainda precisa de {0} niveis
+error.buyable: &6Precisa de  {0} moedas para comprar esse espaço. Faça um click novamente nos proximos 10seg para confirmar.
+error.previous: &6Desbloqueie o espaço previo
+error.rp.denied: &cDeve habilitar o download do pacote de recursos!
+error.item.level: &6Nivel &c{0} &6requerido
+error.item.class: &6Classe &c{0} &6requerida
+error.mount.owner: &6A moldura pertence a {0}
+error.creative: &4RPGInventory can''t be used in CREATIVE game mode. Please switch to SURVIVAL.
+
+message.buyed: &a&Você já comprou o espaço
+message.perms: &cYou don''t have permission to use this command
+
+pet.name: {0} &f[{1}]
+pet.health: &cVida: &7{0}
+pet.damage: &cDano: &7{0}
+pet.speed: &cVelocidade: &7{0} blocos/segundo
+pet.revival.yes: &bTempo de espera: &7{0}s
+pet.revival.no: &bNão resucitará
+pet.cooldown:  &a&o({0}s)
+pet.food.value: &aRestaurou: {0} de vida
+pet.role.companion: Acompanhante
+pet.role.mount: Monte
+mypet.egg: MyPet Egg: {0}
+
+item.level: &fRequer nivel {0}
+item.class: &fExclusivo para &b{0}
+item.nodrop: &7Não se dropa ena morte.
+item.left-click: &aClick esquerdo - {0}
+item.right-click: &aClick direito - {0}
+item.hide: &7&oEstadísticas do item ocultas
+item.unbreakable: &7Item inquebravel
+
+stat.message.no_bonus: Sem bonus
+stat.damage: &cDano: &7{0}
+stat.bow_damage: &cDano (flecha): &7{0}
+stat.hand_damage: &cDano (mão): &7{0}
+stat.armor: &3Armadura: &7{0}
+stat.crit_chance: &6Chance de golpe crítico: &7{0}
+stat.crit_damage: &6Dano de golpe crítico: &7{0}
+stat.speed: &9Velocidade: &7{0}
+stat.jump: &9Pulo: &7{0}
+
+backpack.desc: &8&oColoque-o no espaço fornecido e clique &fClique com o botão direito
+backpack.size: &aTamanho: &7{0}
+backpack.limit: &cYou can''t have more than {0} backpack!

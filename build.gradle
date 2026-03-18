@@ -1,0 +1,173 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'ru.endlesscode.bukkitgradle' version '0.10.1'
+    id 'com.github.ben-manes.versions' version "0.42.0"
+    id 'jacoco'
+}
+
+group = 'ru.endlesscode.rpginventory'
+version = pluginVersion
+description = pluginDesc
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(17)
+}
+
+bukkit {
+    apiVersion = '1.20.4'
+
+    meta {
+        name.set("RPGInventory")
+        main.set("${group}.RPGInventory")
+        version.set("2.4.2-CUSTOM")
+        apiVersion.set("1.20")
+        authors.set(["osipxd", "EndlessCode Group", "Deus"])
+    }
+
+    server {
+        core = "paper"
+        eula = true
+    }
+}
+
+// Replace sentry credentials in code
+def processSources = tasks.register("processSource", Sync) {
+    // The key should be declared in ~/.gradle/gradle.properties
+    def dsn = findProperty("rpginvSentryDsn") ?: ""
+
+    from(sourceSets.main.java)
+    inputs.property("dsn", dsn)
+    filter(ReplaceTokens, tokens: [sentry_dsn: dsn])
+    into("$buildDir/src")
+}
+
+compileJava {
+    source = processSources.get().outputs
+}
+
+repositories {
+    mavenCentral()
+    spigot()
+    dmulloy2()
+    md5()
+    placeholderapi()
+    jitpack()
+
+    maven {
+        name = "PhoenixDevt"
+        url = uri("https://nexus.phoenixdevt.fr/repository/maven-public/")
+    }
+    maven {
+        name = "minevolt"
+        url = uri("https://minevolt.net/repo/")
+    }
+    maven {
+        name = "carm"
+        url = uri("https://repo.carm.cc/repository/maven-public/")
+    }
+    maven {
+        name = "minebench"
+        url = uri("https://repo.minebench.de/")
+    }
+    maven {
+        name = "PaperMC"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
+    flatDir {
+        dirs 'libs'
+    }
+
+    // You should configure credentials for this repo
+    // def myPetRepo = maven {
+    //     name = "githubPackages"
+    //     url = uri("https://maven.pkg.github.com/MyPetORG/MyPet")
+    //     credentials(PasswordCredentials)
+    // }
+
+    // exclusiveContent {
+    //     forRepositories(myPetRepo)
+    //     filter { includeGroup("de.keyle") }
+    // }
+}
+
+shadowJar {
+    dependencies {
+        exclude(dependency("com.google.code.gson:gson:.*"))
+        exclude(dependency("org.jetbrains:annotations:.*"))
+    }
+
+    exclude("DebugProbesKt.bin")
+    exclude("META-INF/proguard/**")
+    exclude("META-INF/native-image/**")
+
+    minimize()
+
+    def shadowPackage = "shade.ru.endlesscode.rpginventory"
+    relocate "com.comphenix.packetwrapper", "${shadowPackage}.packetwrapper"
+
+    // inspector
+    relocate "ru.endlesscode.inspector", "${shadowPackage}.inspector"
+    relocate "kotlinx", "${shadowPackage}.kotlinx"
+    relocate "kotlin", "${shadowPackage}.kotlin"
+
+    // inspector-sentry-reporter
+    relocate "io.sentry", "${shadowPackage}.sentry"
+
+    // bstats
+    relocate "org.bstats", "${shadowPackage}.bstats"
+}
+
+def inspectorVersion = "0.12.1"
+
+dependencies {
+    // compileOnly(spigotApi())
+    compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
+
+    compileOnly('com.github.MilkBowl:VaultAPI:1.7.1') {
+        exclude group: 'org.bukkit'
+    }
+    compileOnly('com.comphenix.protocol:ProtocolLib:4.8.0')
+
+    // ??? idk what is it, and what does it do.
+    compileOnly('io.lumine:Mythic-Dist:5.4.0')
+    // Mythiclib
+    compileOnly('io.lumine:MythicLib-dist:1.7.1-20260108.011002-65')
+    // MMOitems
+    compileOnly('net.Indyuce:MMOItems-API:6.9.5-20240127.151319-18')
+    // MMOCore
+    compileOnly('net.Indyuce:MMOCore-API:1.12.1-20241022.144838-62')
+
+    compileOnly('org.jetbrains:annotations:23.0.0')
+    compileOnly('me.clip:placeholderapi:2.11.1')
+    compileOnly(name: 'MyPet-3.14.0-SNAPSHOT-b14')
+    compileOnly('ru.endlesscode.mimic:mimic-bukkit-api:0.8.0')
+    implementation("ru.endlesscode.inspector:inspector-bukkit:$inspectorVersion")
+    implementation("ru.endlesscode.inspector:inspector-sentry-reporter:$inspectorVersion")
+    implementation("ru.endlesscode.inspector:sentry-bukkit:$inspectorVersion")
+
+    implementation('com.comphenix.packetwrapper:PacketWrapper:1.13-R0.1-SNAPSHOT')
+    // https://mvnrepository.com/artifact/com.comphenix.packetwrapper/PacketWrapper
+    // implementation 'com.comphenix.packetwrapper:PacketWrapper:1.20-2.2.1'
+
+    implementation('org.bstats:bstats-bukkit:3.0.0')
+    testImplementation('junit:junit:4.13.2')
+    testImplementation('org.mockito:mockito-core:4.4.0')
+}
+
+// Add custom tasks
+tasks.assemble.dependsOn tasks.shadowJar
+tasks.check.dependsOn tasks.jacocoTestReport
+
+// Add ProGuard minimization task
+// TODO: minimized Jar not works, fix it
+//apply(from: file("proguard.gradle"))
+//apply(from: file("gradle/publish.gradle"))

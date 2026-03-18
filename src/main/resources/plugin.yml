@@ -1,0 +1,43 @@
+depend:
+  - ProtocolLib
+  - Vault
+softdepend:
+  - Mimic
+  - MyPet
+  - PlaceholderAPI
+
+commands:
+  rpginventory:
+    description: RPGInventory command.
+    aliases: [rpginv]
+    usage: /<command>
+
+permissions:
+  rpginventory.admin:
+    description: Gives access to all RPGInventory commands
+    default: op
+    children:
+      rpginventory.user: true
+      rpginventory.open.others: true
+  rpginventory.user:
+    description: Gives access to all user commands
+    default: true
+    children:
+      rpginventory.open: true
+  rpginventory.open:
+    description: Allows you to open inventory by command
+    default: true
+  rpginventory.open.others:
+    description: Allows you to open your or other player's inventory by command
+    default: op
+    children:
+      rpginventory.open: true
+  rpginventory.keep.items:
+    description: Player with this permission will not lose any items on dead
+    default: op
+  rpginventory.keep.armor:
+    description: Player with this permission will not lose armor on dead
+    default: op
+  rpginventory.keep.rpginv:
+    description: Player with this permission will not lose items from RPGInventory on dead
+    default: op
