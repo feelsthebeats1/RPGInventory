@@ -14,6 +14,23 @@ X changes total
 
 ## [Unreleased]
 
+## [2.4.2] (2026-03-18)
+
+### Added
+- Added support for MythicLib v1.7.1-65
+- Added support for MMOItems v6.9.5-18(latest iirc)
+<!-- - Added support for MMOcore v1.12.1-62 -->
+- Stats integrate with mythiclib, mmoitems
+- Add:
+  SKILL_DAMAGE
+  MAGICAL_DAMAGE
+  MAGICAL_CRITICAL_CHANCE
+  MAGICAL_CRITICAL_POWER
+  PROJECTILE_DAMAGE
+  WEAPON_DAMAGE
+  PHYSICAL_DAMAGE
+  and curently only support for mythic.
+
 ## [2.4.1] (2022-04-19)
 
 ### Added

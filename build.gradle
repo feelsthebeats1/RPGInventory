@@ -143,8 +143,9 @@ dependencies {
     compileOnly('io.lumine:MythicLib-dist:1.7.1-20260108.011002-65')
     // MMOitems
     compileOnly('net.Indyuce:MMOItems-API:6.9.5-20240127.151319-18')
+    
     // MMOCore
-    compileOnly('net.Indyuce:MMOCore-API:1.12.1-20241022.144838-62')
+    // compileOnly('net.Indyuce:MMOCore-API:1.12.1-20241022.144838-62')
 
     compileOnly('org.jetbrains:annotations:23.0.0')
     compileOnly('me.clip:placeholderapi:2.11.1')
