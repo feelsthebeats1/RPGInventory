@@ -21,7 +21,7 @@ X changes total
 - Added support for MMOItems v6.9.5-18(latest iirc)
 <!-- - Added support for MMOcore v1.12.1-62 -->
 - Stats integrate with mythiclib, mmoitems
-- Add:
+- Added stats:
   SKILL_DAMAGE
   MAGICAL_DAMAGE
   MAGICAL_CRITICAL_CHANCE
@@ -29,7 +29,8 @@ X changes total
   PROJECTILE_DAMAGE
   WEAPON_DAMAGE
   PHYSICAL_DAMAGE
-  and curently only support for mythic.
+  COOLDOWN_REDUCTION
+  <!-- !! these stats curently only support for mythic. -->
 
 ## [2.4.1] (2022-04-19)
 
