@@ -48,6 +48,7 @@ public class ItemUtils {
     public static final String ENTITY_TAG = "EntityTag";
 
     public static final String BACKPACK_UID_TAG = "backpack.uid";
+    public static final String BACKPACK_OWNER_TAG = "backpack.owner";
     public static final String BACKPACK_TAG = "backpack.id";
     public static final String ITEM_TAG = "rpginv.id";
     public static final String FOOD_TAG = "food.id";

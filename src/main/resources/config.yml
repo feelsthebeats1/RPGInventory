@@ -60,6 +60,12 @@ items:
 ###############################
 
 backpacks:
+  # Enable backpacks system (you can create backpacks in backpacks.yml)
+  enabled: true
+
+  # Require backpack slot for backpacks using (if true, YOU must setup a backpack slot to enable backpack system)
+  require-backpack-slot: false
+
   # Backpack will be deleted if it is not opened within that period (in days)
   # Comment it out or set 0 for infinity backpacks (NOT RECOMMENDED)
   expiration-time: 30

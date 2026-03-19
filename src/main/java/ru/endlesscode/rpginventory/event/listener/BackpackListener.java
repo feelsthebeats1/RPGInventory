@@ -40,6 +40,7 @@ import ru.endlesscode.rpginventory.inventory.PlayerWrapper;
 import ru.endlesscode.rpginventory.inventory.backpack.Backpack;
 import ru.endlesscode.rpginventory.inventory.backpack.BackpackHolder;
 import ru.endlesscode.rpginventory.inventory.backpack.BackpackManager;
+import ru.endlesscode.rpginventory.inventory.backpack.BackpackType;
 import ru.endlesscode.rpginventory.inventory.backpack.BackpackUpdater;
 import ru.endlesscode.rpginventory.inventory.slot.Slot;
 import ru.endlesscode.rpginventory.inventory.slot.SlotManager;
@@ -55,20 +56,24 @@ public class BackpackListener implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onUseBackpack(@NotNull PlayerInteractEvent event) {
+        if (!event.hasItem()) {
+            return;
+        }
+
         ItemStack item = event.getItem();
-        if (!event.hasItem() || !ItemUtils.hasTag(item, ItemUtils.BACKPACK_TAG)) {
+        if (!ItemUtils.hasTag(item, ItemUtils.BACKPACK_TAG)) {
             return;
         }
 
         Player player = event.getPlayer();
         Action action = event.getAction();
-        if ((action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)
-                && InventoryManager.isQuickSlot(player.getInventory().getHeldItemSlot())) {
-            BackpackManager.open(player, item);
+        if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+            if (!BackpackManager.open(player, item)) {
+                PlayerUtils.sendMessage(player, RPGInventory.getLanguage().getMessage("backpack.not-owner"));
+            }
+            event.setCancelled(true);
+            player.updateInventory();
         }
-
-        event.setCancelled(true);
-        player.updateInventory();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -92,7 +97,32 @@ public class BackpackListener implements Listener {
                 return;
             }
 
-            // Save changes
+            Backpack backpack = InventoryManager.get(player).getBackpack();
+            BackpackType type = backpack != null ? backpack.getType() : null;
+
+            if (type != null && (event.getAction() == InventoryAction.PLACE_ALL
+                    || event.getAction() == InventoryAction.PLACE_ONE
+                    || event.getAction() == InventoryAction.PLACE_SOME
+                    || event.getAction() == InventoryAction.SWAP_WITH_CURSOR)) {
+                ItemStack cursor = event.getCursor();
+                if (ItemUtils.isNotEmpty(cursor) && !type.isAllowed(cursor)) {
+                    PlayerUtils.sendMessage(player, RPGInventory.getLanguage().getMessage("backpack.item-not-allowed"));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
+            if (type != null && event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                    && event.getClickedInventory() != null
+                    && event.getClickedInventory().getHolder() != inventory.getHolder()) {
+                ItemStack current = event.getCurrentItem();
+                if (ItemUtils.isNotEmpty(current) && !type.isAllowed(current)) {
+                    PlayerUtils.sendMessage(player, RPGInventory.getLanguage().getMessage("backpack.item-not-allowed"));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
             if (event.getAction() == InventoryAction.NOTHING) {
                 return;
             }

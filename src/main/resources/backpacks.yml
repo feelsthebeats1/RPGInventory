@@ -5,6 +5,15 @@ backpacks:
     lore:
       - "&e&oIt seems a trifle, but useful"
     size: 5
+    unique-owner: true
+    whitelist-only: false // if true, only items from the whitelist will be allowed in the backpack.
+    // If false, all items except those in the blacklist will be allowed.
+    whitelist:
+      - DIAMOND
+      - mmoitems:SWORD
+      - mmoitems:ARMOR:MY_SET_HELM
+    blacklist:
+      - TNT
   medium:
     item: DIAMOND_HOE:21
     name: "&6Medium backpack"

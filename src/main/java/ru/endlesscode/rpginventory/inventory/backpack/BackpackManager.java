@@ -65,7 +65,12 @@ public class BackpackManager {
 
     public static boolean init(@NotNull RPGInventory instance) {
         if (!isEnabled()) {
-            Log.i("Slot for backpacks not found");
+            Log.i("Backpacks system is disabled!");
+            return false;
+        }
+
+        if (SlotManager.instance().getBackpackSlot() == null && isRequiredSlot()) {
+            Log.w("Backpack slot is required but not found. Backpacks system will be disabled.");
             return false;
         }
 
@@ -129,7 +134,11 @@ public class BackpackManager {
     }
 
     private static boolean isEnabled() {
-        return SlotManager.instance().getBackpackSlot() != null;
+        return Config.getConfig().getBoolean("backpacks.enable", true);
+    }
+
+    private static boolean isRequiredSlot() {
+        return Config.getConfig().getBoolean("backpacks.require-backpack-slot", false);
     }
 
     @NotNull
@@ -158,6 +167,17 @@ public class BackpackManager {
         Backpack backpack;
         String bpUid = ItemUtils.getTag(bpItem, ItemUtils.BACKPACK_UID_TAG);
         UUID uuid = bpUid.isEmpty() ? null : UUID.fromString(bpUid);
+
+        // Bind owner on first open if backpack type requires it
+        if (type.isUniqueOwner()) {
+            String owner = ItemUtils.getTag(bpItem, ItemUtils.BACKPACK_OWNER_TAG);
+            UUID playerId = player.getUniqueId();
+            if (owner.isEmpty()) {
+                ItemUtils.setTag(bpItem, ItemUtils.BACKPACK_OWNER_TAG, playerId.toString());
+            } else if (!owner.equals(playerId.toString())) {
+                return false; // not the owner
+            }
+        }
         if (!BACKPACKS.containsKey(uuid)) {
             if (uuid == null) {
                 backpack = type.createBackpack();
@@ -178,6 +198,11 @@ public class BackpackManager {
     @Nullable
     public static BackpackType getBackpackType(String bpId) {
         return BACKPACK_TYPES.get(bpId);
+    }
+
+    @Nullable
+    public static Backpack getBackpack(UUID uuid) {
+        return BACKPACKS.get(uuid);
     }
 
     public static void saveBackpacks() {

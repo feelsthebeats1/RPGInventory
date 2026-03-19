@@ -59,6 +59,7 @@ public class StatsUpdater extends TrackedBukkitRunnable {
             SharedStat.SPELL_CRITICAL_STRIKE_POWER,
             SharedStat.PVP_DAMAGE,
             SharedStat.PVE_DAMAGE,
+            SharedStat.SKILL_DAMAGE,
             SharedStat.ATTACK_SPEED,
             SharedStat.MAX_HEALTH,
             SharedStat.ARMOR,
@@ -176,17 +177,19 @@ public class StatsUpdater extends TrackedBukkitRunnable {
         applyStat(statMap, SharedStat.SKILL_DAMAGE, sourceKey + ":skill-dmg", skillDmg.getBonus(),
                 skillDmg.getMultiplier() - 1);
 
-        Modifier magicDmg = ItemManager.getModifier(player, ItemStat.StatType.MAGICAL_DAMAGE);
+        Modifier magicDmg = ItemManager.getModifier(player, ItemStat.StatType.MAGIC_DAMAGE);
         applyStat(statMap, SharedStat.MAGICAL_DAMAGE, sourceKey + ":magic-dmg", magicDmg.getBonus(),
                 magicDmg.getMultiplier() - 1);
 
-        Modifier magicCritChance = ItemManager.getModifier(player, ItemStat.StatType.MAGICAL_CRITICAL_CHANCE);
-        applyStat(statMap, SharedStat.SPELL_CRITICAL_STRIKE_CHANCE, sourceKey + ":magic-crit-chance",
-                0, magicCritChance.getMultiplier() - 1);
+        Modifier magicCritChance = ItemManager.getModifier(player, ItemStat.StatType.SPELL_CRITICAL_CHANCE);
+        double spellCritChance = (magicCritChance.getMultiplier() - 1) * 100;
+        applyStat(statMap, SharedStat.SPELL_CRITICAL_STRIKE_CHANCE, sourceKey + ":spell-crit-chance",
+                spellCritChance, 0);
 
-        Modifier magicCritPower = ItemManager.getModifier(player, ItemStat.StatType.MAGICAL_CRITICAL_POWER);
-        applyStat(statMap, SharedStat.SPELL_CRITICAL_STRIKE_POWER, sourceKey + ":magic-crit-power",
-                0, magicCritPower.getMultiplier() - 1);
+        Modifier magicCritPower = ItemManager.getModifier(player, ItemStat.StatType.SKILL_CRITICAL_POWER);
+        double spellCritPower = (magicCritPower.getMultiplier() - 1) * 100;
+        applyStat(statMap, SharedStat.SPELL_CRITICAL_STRIKE_POWER, sourceKey + ":spell-crit-power",
+                spellCritPower, 0);
 
         // MythicLib projectile damage uses dedicated stat; bow_damage from RPGInventory stays in vanilla handler only. yeah
         Modifier projDmg = ItemManager.getModifier(player, ItemStat.StatType.PROJECTILE_DAMAGE);
@@ -224,6 +227,7 @@ public class StatsUpdater extends TrackedBukkitRunnable {
         statMap.update(SharedStat.DAMAGE_REDUCTION);
         statMap.update(SharedStat.PVP_DAMAGE);
         statMap.update(SharedStat.PVE_DAMAGE);
+        statMap.update(SharedStat.SKILL_DAMAGE);
         statMap.update(SharedStat.MAGICAL_DAMAGE);
         statMap.update(SharedStat.SPELL_CRITICAL_STRIKE_CHANCE);
         statMap.update(SharedStat.SPELL_CRITICAL_STRIKE_POWER);

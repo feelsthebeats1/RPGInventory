@@ -18,17 +18,22 @@
 
 package ru.endlesscode.rpginventory.inventory.backpack;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
 import ru.endlesscode.rpginventory.inventory.InventoryManager;
 import ru.endlesscode.rpginventory.misc.config.Config;
 import ru.endlesscode.rpginventory.utils.Log;
-
-import java.util.*;
 
 /**
  * Created by OsipXD on 19.10.2015
@@ -95,7 +100,7 @@ public class Backpack implements ConfigurationSerializable {
         return backpackType;
     }
 
-    void open(@NotNull Player player) {
+public void open(@NotNull Player player) {
         int realSize = (int) Math.ceil(this.backpackType.getSize() / 9.0) * 9;
         if (realSize > 54) {
             realSize = 54;

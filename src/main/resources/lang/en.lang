@@ -56,3 +56,9 @@ stat.jump: &9Jump: &7{0}
 backpack.desc: &8&oPut it in specified slot and click &fRMB
 backpack.size: &aSize: &7{0}
 backpack.limit: &cYou can''t have more than {0} backpack!
+backpack.not-owner: &cThis backpack is bound to another player.
+backpack.not-found: &cBackpack not found.
+backpack.invalid-uuid: &cBackpack UUID is not valid.
+backpack.admin.usage: &3Usage: &6/rpginv openbp &eplayer &6&euuid
+backpack.admin.opened: &aOpened backpack {0} for {1}
+backpack.item-not-allowed: &cYou cannot store that item in this backpack.

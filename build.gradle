@@ -28,7 +28,7 @@ bukkit {
     meta {
         name.set("RPGInventory")
         main.set("${group}.RPGInventory")
-        version.set("2.4.2-CUSTOM")
+        version.set("2.4.3-CUSTOM")
         apiVersion.set("1.20")
         authors.set(["osipxd", "EndlessCode Group", "Deus"])
     }
@@ -140,12 +140,12 @@ dependencies {
     // ??? idk what is it, and what does it do.
     compileOnly('io.lumine:Mythic-Dist:5.4.0')
     // Mythiclib
-    compileOnly('io.lumine:MythicLib-dist:1.7.1-20260108.011002-65')
+    compileOnly('io.lumine:MythicLib-dist:1.6.2-20240909.120157-65')
     // MMOitems
     compileOnly('net.Indyuce:MMOItems-API:6.9.5-20240127.151319-18')
     
     // MMOCore
-    // compileOnly('net.Indyuce:MMOCore-API:1.12.1-20241022.144838-62')
+    compileOnly('net.Indyuce:MMOCore-API:1.12.1-20241022.144838-62')
 
     compileOnly('org.jetbrains:annotations:23.0.0')
     compileOnly('me.clip:placeholderapi:2.11.1')

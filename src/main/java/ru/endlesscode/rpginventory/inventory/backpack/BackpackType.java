@@ -46,6 +46,10 @@ public class BackpackType extends TexturedItem {
     @NotNull
     private final List<String> lore;
     private final int size;
+    private final boolean uniqueOwner;
+    private final boolean whitelistOnly;
+    private final List<String> whitelist;
+    private final List<String> blacklist;
 
     private ItemStack item;
 
@@ -56,6 +60,10 @@ public class BackpackType extends TexturedItem {
         this.name = StringUtils.coloredLine(config.getString("name", id));
         this.lore = StringUtils.coloredLines(config.getStringList("lore"));
         this.size = config.getInt("size", 56) < 56 ? config.getInt("size") : 56;
+        this.uniqueOwner = config.getBoolean("unique-owner", false);
+        this.whitelistOnly = config.getBoolean("whitelist-only", false);
+        this.whitelist = config.getStringList("whitelist");
+        this.blacklist = config.getStringList("blacklist");
 
         this.createItem();
     }
@@ -102,5 +110,55 @@ public class BackpackType extends TexturedItem {
 
     public String getId() {
         return this.id;
+    }
+
+    public boolean isUniqueOwner() {
+        return uniqueOwner;
+    }
+
+    public boolean isAllowed(ItemStack item) {
+        boolean matchesWhitelist = matchesList(this.whitelist, item);
+
+        if (!this.whitelistOnly && matchesList(this.blacklist, item)) {
+            return false;
+        }
+
+        if (this.whitelistOnly) {
+            return matchesWhitelist;
+        }
+
+        if (!this.whitelist.isEmpty() && !matchesWhitelist) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean matchesList(List<String> list, ItemStack item) {
+        if (list == null || list.isEmpty()) return false;
+        String materialName = item.getType().name();
+
+        for (String entry : list) {
+            String e = entry.trim();
+            if (e.isEmpty()) continue;
+
+            if (e.toLowerCase().startsWith("mmoitems:")) {
+                String[] parts = e.split(":", 3);
+                String type = parts.length >= 2 ? parts[1].toUpperCase() : "";
+                String id = parts.length == 3 ? parts[2].toUpperCase() : null;
+
+                io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem.get(item);
+                if (!nbt.hasType()) continue;
+                String nbtType = nbt.getType() != null ? nbt.getType().toUpperCase() : "";
+                String nbtId = nbt.getString("MMOITEMS_ITEM_ID") != null ? nbt.getString("MMOITEMS_ITEM_ID").toUpperCase() : "";
+                if (!nbtType.equals(type)) continue;
+                if (id != null && !id.equals(nbtId)) continue;
+                return true;
+            }
+
+            if (materialName.equalsIgnoreCase(e)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

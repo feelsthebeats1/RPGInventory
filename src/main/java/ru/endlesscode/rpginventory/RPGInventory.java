@@ -159,7 +159,9 @@ public class RPGInventory extends JavaPlugin {
         // Enable commands
         // this.getCommand("rpginventory")
         //         .setExecutor(new TrackedCommandExecutor(new RPGInventoryCommandExecutor(), getReporter()));
-        this.getCommand("rpginventory").setExecutor(new RPGInventoryCommandExecutor());
+        RPGInventoryCommandExecutor cmd = new RPGInventoryCommandExecutor();
+        this.getCommand("rpginventory").setExecutor(cmd);
+        this.getCommand("rpginventory").setTabCompleter(cmd);
 
         this.checkUpdates(null);
     }

@@ -18,31 +18,40 @@
 
 package ru.endlesscode.rpginventory;
 
-import net.milkbowl.vault.permission.Permission;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import net.milkbowl.vault.permission.Permission;
 import ru.endlesscode.rpginventory.api.InventoryAPI;
 import ru.endlesscode.rpginventory.event.ItemCommandEvent;
 import ru.endlesscode.rpginventory.inventory.InventoryManager;
+import ru.endlesscode.rpginventory.inventory.backpack.Backpack;
 import ru.endlesscode.rpginventory.inventory.backpack.BackpackManager;
 import ru.endlesscode.rpginventory.item.ItemManager;
 import ru.endlesscode.rpginventory.pet.PetManager;
 import ru.endlesscode.rpginventory.utils.ItemUtils;
 import ru.endlesscode.rpginventory.utils.StringUtils;
 
-import java.util.List;
-
 /**
  * Created by OsipXD on 28.08.2015
  * It is part of the RpgInventory.
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
-final class RPGInventoryCommandExecutor implements CommandExecutor {
+final class RPGInventoryCommandExecutor implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
@@ -55,6 +64,10 @@ final class RPGInventoryCommandExecutor implements CommandExecutor {
         String subCommand = args[0].toLowerCase();
 
         if (perms.has(sender, "rpginventory.admin")) {
+            if ("openbp".equalsIgnoreCase(subCommand)) {
+                this.tryToOpenBackpackAdmin(sender, args);
+                return true;
+            }
             switch (subCommand.charAt(0)) {
                 case 'p': // pets
                     this.tryToGivePet(sender, args);
@@ -89,6 +102,68 @@ final class RPGInventoryCommandExecutor implements CommandExecutor {
             this.printHelp(sender);
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        Permission perms = RPGInventory.getPermissions();
+        boolean admin = perms.has(sender, "rpginventory.admin");
+        boolean canOpenOthers = perms.has(sender, "rpginventory.open.others");
+        boolean canOpen = canOpenOthers || perms.has(sender, "rpginventory.open");
+
+        if (args.length == 1) {
+            List<String> suggestions = new ArrayList<>();
+            if (canOpen) suggestions.add("open");
+            if (admin) {
+                Collections.addAll(suggestions, "reload", "pet", "food", "item", "bp", "backpacks", "items", "pets", "food", "list", "openbp");
+            }
+            return suggestions.stream()
+                    .filter(s -> s.toLowerCase(Locale.ROOT).startsWith(args[0].toLowerCase(Locale.ROOT)))
+                    .collect(Collectors.toList());
+        }
+
+        String sub = args[0].toLowerCase(Locale.ROOT);
+        if (args.length == 2) {
+            if (sub.startsWith("open") && canOpenOthers) {
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(n -> n.toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT)))
+                        .collect(Collectors.toList());
+            }
+            if (admin && (sub.startsWith("pet") || sub.startsWith("food") || sub.startsWith("item") || sub.startsWith("bp") || sub.startsWith("backpack") || sub.startsWith("openbp"))) {
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(n -> n.toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT)))
+                        .collect(Collectors.toList());
+            }
+        } else if (args.length == 3 && admin) {
+            switch (sub.charAt(0)) {
+                case 'p': // pet
+                    return PetManager.getPetList().stream()
+                            .filter(id -> id.toLowerCase(Locale.ROOT).startsWith(args[2].toLowerCase(Locale.ROOT)))
+                            .collect(Collectors.toList());
+                case 'f': // food
+                    return PetManager.getFoodList().stream()
+                            .filter(id -> id.toLowerCase(Locale.ROOT).startsWith(args[2].toLowerCase(Locale.ROOT)))
+                            .collect(Collectors.toList());
+                case 'i': // item
+                    return ItemManager.getItemList().stream()
+                            .filter(id -> id.toLowerCase(Locale.ROOT).startsWith(args[2].toLowerCase(Locale.ROOT)))
+                            .collect(Collectors.toList());
+                case 'b': // backpack
+                    return BackpackManager.getBackpackList().stream()
+                            .filter(id -> id.toLowerCase(Locale.ROOT).startsWith(args[2].toLowerCase(Locale.ROOT)))
+                            .collect(Collectors.toList());
+                case 'o': // openbp <player> <uuid>
+                    if (sub.startsWith("openbp")) {
+                        return Collections.emptyList();
+                    }
+                default:
+                    break;
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     private void tryToGivePet(CommandSender sender, String[] args) {
@@ -133,6 +208,36 @@ final class RPGInventoryCommandExecutor implements CommandExecutor {
         }
 
         sender.sendMessage(StringUtils.coloredLine("&3Usage: &6/rpginv bp [&eplayer&6] [&eitemId&6]"));
+    }
+
+    private void tryToOpenBackpackAdmin(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(RPGInventory.getLanguage().getMessage("backpack.admin.usage"));
+            return;
+        }
+
+        if (!validatePlayer(sender, args[1])) {
+            return;
+        }
+
+        Player target = RPGInventory.getInstance().getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(StringUtils.coloredLine("&cPlayer '" + args[1] + "' not found!"));
+            return;
+        }
+
+        try {
+            UUID uuid = UUID.fromString(args[2]);
+            Backpack backpack = BackpackManager.getBackpack(uuid);
+            if (backpack == null) {
+                sender.sendMessage(RPGInventory.getLanguage().getMessage("backpack.not-found"));
+                return;
+            }
+            backpack.open(target);
+            sender.sendMessage(RPGInventory.getLanguage().getMessage("backpack.admin.opened", uuid, target.getName()));
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage(RPGInventory.getLanguage().getMessage("backpack.invalid-uuid"));
+        }
     }
 
     private void givePet(@NotNull CommandSender sender, String playerName, String petId) {
