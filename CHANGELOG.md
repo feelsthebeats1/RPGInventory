@@ -14,6 +14,24 @@ X changes total
 
 ## [Unreleased]
 
+## [2.4.3] (2026-03-19)
+
+### Added
+- more config for backpack system, better manager:
+  + toggle backpack system
+  + add option for enable backpack system if have a backpack slot
+  + add whitelist/backlist, whitelist-only option, support vanilla and mmoitems, seek config.yml
+- update command tabcomplete, yeah
+
+### Changed
+- Changed some stat name:
+  + MAGICAL_DAMAGE -> MAGIC_DAMAGE
+  + MAGICAL_CRITICAL_CHANCE -> SKILL_CRITICAL_CHANCE
+  + MAGICAL_CRITICAL_POWER -> SKILL_CRITICAL_POWER
+
+### Fixed
+- Don't remember if any fixed XD
+
 ## [2.4.2] (2026-03-18)
 
 ### Added

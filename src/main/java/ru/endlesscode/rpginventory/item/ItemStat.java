@@ -142,7 +142,7 @@ public class ItemStat {
         PVE_DAMAGE,
         SKILL_DAMAGE,
         MAGIC_DAMAGE,
-        SPELL_CRITICAL_CHANCE,
+        SKILL_CRITICAL_CHANCE,
         SKILL_CRITICAL_POWER,
         PROJECTILE_DAMAGE,
         WEAPON_DAMAGE,

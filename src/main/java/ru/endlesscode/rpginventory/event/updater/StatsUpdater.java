@@ -181,7 +181,7 @@ public class StatsUpdater extends TrackedBukkitRunnable {
         applyStat(statMap, SharedStat.MAGICAL_DAMAGE, sourceKey + ":magic-dmg", magicDmg.getBonus(),
                 magicDmg.getMultiplier() - 1);
 
-        Modifier magicCritChance = ItemManager.getModifier(player, ItemStat.StatType.SPELL_CRITICAL_CHANCE);
+        Modifier magicCritChance = ItemManager.getModifier(player, ItemStat.StatType.SKILL_CRITICAL_CHANCE);
         double spellCritChance = (magicCritChance.getMultiplier() - 1) * 100;
         applyStat(statMap, SharedStat.SPELL_CRITICAL_STRIKE_CHANCE, sourceKey + ":spell-crit-chance",
                 spellCritChance, 0);
