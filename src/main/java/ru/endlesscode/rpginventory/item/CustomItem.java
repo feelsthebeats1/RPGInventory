@@ -27,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.endlesscode.rpginventory.inventory.InventoryManager;
 import ru.endlesscode.rpginventory.utils.ItemUtils;
-import ru.endlesscode.rpginventory.utils.SafeEnums;
 import ru.endlesscode.rpginventory.utils.StringUtils;
+import ru.endlesscode.rpginventory.utils.SafeEnums;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,10 +72,9 @@ public class CustomItem extends ClassedItem {
 
         if (config.contains("stats")) {
             for (String stat : config.getStringList("stats")) {
-                String[] statParts = stat.split(" ");
-                ItemStat.StatType statType = SafeEnums.valueOf(ItemStat.StatType.class, statParts[0], "stat type");
-                if (statType != null) {
-                    this.stats.add(new ItemStat(statType, statParts[1]));
+                String[] statParts = stat.trim().split("\\s+", 2);
+                if (statParts.length == 2) {
+                    this.stats.add(new ItemStat(statParts[0], statParts[1]));
                 }
             }
         }
@@ -180,7 +179,7 @@ public class CustomItem extends ClassedItem {
         return this.rightClickAction == null ? "" : this.rightClickAction.getCaption();
     }
 
-    @NotNull List<ItemStat> getStats() {
+    public @NotNull List<ItemStat> getStats() {
         return stats;
     }
 

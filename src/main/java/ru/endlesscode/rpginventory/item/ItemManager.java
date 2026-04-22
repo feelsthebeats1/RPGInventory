@@ -286,7 +286,7 @@ public class ItemManager {
                         lastIsSeparator = false;
                     } else {
                         for (ItemStat stat : item.getStats()) {
-                            lore.add(lang.getMessage("stat." + stat.getType().name().toLowerCase(), stat.getStringValue()));
+                            lore.add(lang.getMessage("stat." + stat.getTypeKey().toLowerCase(), stat.getStringValue()));
                             lastIsSeparator = false;
                         }
                     }
@@ -307,6 +307,6 @@ public class ItemManager {
         return lore;
     }
 
-    // Note: MMOItems stats are now handled exclusively by StatsUpdater.injectMmoItemStats()
-    // This avoids conflicts between RPGInventory's stat system and MythicLib's stat system
+    // Note: Mythic/MMOCore integration is handled in StatsUpdater.
+    // ItemManager keeps only RPGInventory custom item stat aggregation logic.
 }

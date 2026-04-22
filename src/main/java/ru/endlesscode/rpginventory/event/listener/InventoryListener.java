@@ -371,6 +371,8 @@ public class InventoryListener implements Listener {
                 } else if (slot.isCup(currentItem)) {
                     event.setCurrentItem(null);
                 }
+
+                ItemManager.updateStats(player);
             }
         }
     }
@@ -441,6 +443,7 @@ public class InventoryListener implements Listener {
             }
 
             InventoryManager.updateArmor(player, inventory, slot, rawSlot, action, currentItem, cursor);
+            ItemManager.updateStats(player);
 
             if (actionType == ActionType.GET) {
                 inventory.setItem(rawSlot, slot.getCup());
@@ -457,6 +460,7 @@ public class InventoryListener implements Listener {
                 public void run() {
                     inventory.setItem(rawSlot, slot.getCup());
                     player.updateInventory();
+                    ItemManager.updateStats(player);
                 }
             }.runTaskLater(RPGInventory.getInstance(), 1);
         } else {

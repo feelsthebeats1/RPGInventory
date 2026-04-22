@@ -81,6 +81,7 @@ public class InventoryUtils {
     @NotNull
     public static List<ItemStack> collectEffectiveItems(@NotNull Player player, boolean notifyPlayer) {
         List<ItemStack> items = new ArrayList<>(InventoryAPI.getPassiveItems(player));
+        items.addAll(InventoryAPI.getActiveItems(player));
         Collections.addAll(items, player.getInventory().getArmorContents());
 
         EntityEquipment equipment = player.getEquipment();

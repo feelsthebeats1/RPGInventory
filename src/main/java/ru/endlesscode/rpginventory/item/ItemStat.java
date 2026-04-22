@@ -18,6 +18,7 @@
 
 package ru.endlesscode.rpginventory.item;
 
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import ru.endlesscode.rpginventory.utils.StringUtils;
 
@@ -27,7 +28,10 @@ import ru.endlesscode.rpginventory.utils.StringUtils;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class ItemStat {
+    @Nullable
     private final StatType type;
+    @NotNull
+    private final String typeKey;
     @NotNull
     private final OperationType operationType;
     private final boolean percentage;
@@ -35,9 +39,14 @@ public class ItemStat {
     private final double maxValue;
 
     ItemStat(StatType type, String value) {
-        this.type = type;
+        this(type.name(), value);
+    }
+
+    ItemStat(String typeKey, String value) {
+        this.typeKey = normalizeTypeKey(typeKey);
+        this.type = parseType(this.typeKey);
         this.operationType = OperationType.valueOf(value.charAt(0));
-        this.percentage = this.type.isOnlyPercentage() || value.endsWith("%");
+        this.percentage = (this.type != null && this.type.isOnlyPercentage()) || value.endsWith("%");
 
         value = value.substring(1).replaceAll("%", "");
         if (value.contains("-")) {
@@ -46,6 +55,20 @@ public class ItemStat {
         } else {
             this.minValue = Double.parseDouble(value);
             this.maxValue = -1;
+        }
+    }
+
+    @NotNull
+    private static String normalizeTypeKey(@NotNull String typeKey) {
+        return typeKey.trim().toUpperCase().replace('-', '_').replace(' ', '_');
+    }
+
+    @Nullable
+    private static StatType parseType(@NotNull String typeKey) {
+        try {
+            return StatType.valueOf(typeKey);
+        } catch (IllegalArgumentException ignored) {
+            return null;
         }
     }
 
@@ -85,20 +108,26 @@ public class ItemStat {
         return value;
     }
 
-    boolean isPercentage() {
+    public boolean isPercentage() {
         return percentage;
     }
 
-    @NotNull OperationType getOperationType() {
+    @NotNull public OperationType getOperationType() {
         return operationType;
     }
 
+    @Nullable
     public StatType getType() {
         return type;
     }
 
+    @NotNull
+    public String getTypeKey() {
+        return typeKey;
+    }
 
-    enum OperationType {
+
+    public enum OperationType {
         PLUS('+'),
         MINUS('-');
 
@@ -147,6 +176,7 @@ public class ItemStat {
         PROJECTILE_DAMAGE,
         WEAPON_DAMAGE,
         PHYSICAL_DAMAGE,
+        ADDITIONAL_EXPERIENCE(true),
         COOLDOWN_REDUCTION(true);
 
         private final boolean onlyPercentage;
