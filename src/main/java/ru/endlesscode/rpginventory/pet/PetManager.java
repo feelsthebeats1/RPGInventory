@@ -82,6 +82,7 @@ public class PetManager {
     private static final String METADATA_KEY_PET_OWNER = "rpginventory:petowner";
     private static final Map<String, PetType> PETS = new HashMap<>();
     private static final Map<String, PetFood> PET_FOOD = new HashMap<>();
+    private static final Map<UUID, LivingEntity> ACTIVE_PETS = new HashMap<>();
     private static final String DEATH_TIME_TAG = "pet.deathTime";
     private static CooldownsTimer COOLDOWNS_TIMER;
     private static int SLOT_PET;
@@ -192,7 +193,142 @@ public class PetManager {
             return;
         }
 
+        // Kiểm tra và clear pet không hợp lệ khi player đăng nhập
+        checkAndClearInvalidPets(player);
+        
         respawnPet(player);
+    }
+
+    /**
+     * Kiểm tra và clear các pet không hợp lệ khi player đăng nhập
+     * - Pet không có chủ (owner offline hoặc không tồn tại)
+     * - Pet vượt số lượng cho phép
+     *
+     * @param player Player vừa đăng nhập
+     */
+    public static void checkAndClearInvalidPets(@NotNull Player player) {
+        if (!isEnabled()) {
+            return;
+        }
+
+        UUID playerUUID = player.getUniqueId();
+        LivingEntity pet = ACTIVE_PETS.get(playerUUID);
+        
+        // Kiểm tra pet có tồn tại và hợp lệ không
+        if (pet != null) {
+            // Kiểm tra pet có chết không
+            if (pet.isDead()) {
+                ACTIVE_PETS.remove(playerUUID);
+                Log.i("Removed dead pet for player {0}", player.getName());
+                return;
+            }
+            
+            // Kiểm tra pet có metadata owner không
+            UUID petOwnerUUID = getPetOwner(pet);
+            if (petOwnerUUID == null || !petOwnerUUID.equals(playerUUID)) {
+                // Pet không có chủ hoặc chủ không đúng
+                EffectUtils.playDespawnEffect(pet);
+                pet.remove();
+                ACTIVE_PETS.remove(playerUUID);
+                
+                // Xóa pet khỏi PlayerWrapper nếu có
+                if (InventoryManager.playerIsLoaded(player)) {
+                    PlayerWrapper playerWrapper = InventoryManager.get(player);
+                    if (playerWrapper.getPet() == pet) {
+                        playerWrapper.setPet(null);
+                    }
+                }
+                
+                Log.i("Removed orphaned pet for player {0}", player.getName());
+            }
+        }
+        
+        // Kiểm tra và clear pet vượt số lượng (mỗi player chỉ được có 1 pet)
+        cleanupDuplicatePets(playerUUID);
+    }
+
+    /**
+     * Kiểm tra và xóa các pet trùng lặp (vượt số lượng cho phép)
+     * Mỗi player chỉ được có tối đa 1 pet active
+     *
+     * @param playerUUID UUID của player
+     */
+    private static void cleanupDuplicatePets(@NotNull UUID playerUUID) {
+        LivingEntity pet = ACTIVE_PETS.get(playerUUID);
+        if (pet == null) {
+            return;
+        }
+        
+        // Kiểm tra xem pet có đang được track trong PlayerWrapper không
+        Player player = org.bukkit.Bukkit.getPlayer(playerUUID);
+        if (player != null && InventoryManager.playerIsLoaded(player)) {
+            PlayerWrapper playerWrapper = InventoryManager.get(player);
+            LivingEntity wrapperPet = playerWrapper.getPet();
+            
+            // Nếu có sự không đồng bộ giữa ACTIVE_PETS và PlayerWrapper
+            if (wrapperPet != null && !wrapperPet.equals(pet)) {
+                // Xóa pet cũ trong ACTIVE_PETS
+                if (!pet.isDead()) {
+                    EffectUtils.playDespawnEffect(pet);
+                    pet.remove();
+                }
+                ACTIVE_PETS.remove(playerUUID);
+                Log.i("Cleaned up duplicate pet for player {0}", player.getName());
+            }
+        }
+    }
+
+    /**
+     * Kiểm tra tất cả pet đang active và clear các pet không có chủ
+     * Được gọi khi server reload hoặc định kỳ
+     */
+    public static void cleanupOrphanedPets() {
+        if (!isEnabled()) {
+            return;
+        }
+
+        List<UUID> toRemove = new ArrayList<>();
+        
+        for (Map.Entry<UUID, LivingEntity> entry : ACTIVE_PETS.entrySet()) {
+            UUID ownerUUID = entry.getKey();
+            LivingEntity pet = entry.getValue();
+            
+            // Kiểm tra pet có chết không
+            if (pet == null || pet.isDead()) {
+                toRemove.add(ownerUUID);
+                continue;
+            }
+            
+            // Kiểm tra owner có online không
+            Player owner = org.bukkit.Bukkit.getPlayer(ownerUUID);
+            if (owner == null || !owner.isOnline()) {
+                // Owner offline, xóa pet
+                EffectUtils.playDespawnEffect(pet);
+                pet.remove();
+                toRemove.add(ownerUUID);
+                Log.i("Removed pet for offline player {0}", ownerUUID);
+                continue;
+            }
+            
+            // Kiểm tra pet có metadata owner không
+            UUID petOwnerUUID = getPetOwner(pet);
+            if (petOwnerUUID == null || !petOwnerUUID.equals(ownerUUID)) {
+                // Pet không có chủ hoặc chủ không đúng
+                EffectUtils.playDespawnEffect(pet);
+                pet.remove();
+                toRemove.add(ownerUUID);
+                Log.i("Removed orphaned pet for player {0}", owner.getName());
+            }
+        }
+        
+        // Xóa các pet đã đánh dấu
+        for (UUID uuid : toRemove) {
+            ACTIVE_PETS.remove(uuid);
+        }
+        
+        if (!toRemove.isEmpty()) {
+            Log.i("Cleaned up {0} orphaned pet(s)", toRemove.size());
+        }
     }
 
     @Contract(pure = true)
@@ -253,6 +389,12 @@ public class PetManager {
 
     public static void respawnPet(@NotNull final Player player, @NotNull ItemStack petItem) {
         if (!InventoryManager.playerIsLoaded(player) || !PetManager.isEnabled()) {
+            return;
+        }
+
+        UUID playerUUID = player.getUniqueId();
+        LivingEntity existingPet = ACTIVE_PETS.get(playerUUID);
+        if (existingPet != null && !existingPet.isDead()) {
             return;
         }
 
@@ -387,6 +529,8 @@ public class PetManager {
         }
 
         InventoryManager.get(player).setPet(pet);
+        
+        ACTIVE_PETS.put(playerUUID, pet);
     }
 
     public static void despawnPet(OfflinePlayer player) {
@@ -412,6 +556,8 @@ public class PetManager {
         EffectUtils.playDespawnEffect(pet);
         pet.remove();
         playerWrapper.setPet(null);
+        
+        ACTIVE_PETS.remove(player.getUniqueId());
     }
 
     public static void despawnPet(Tameable petEntity) {
@@ -583,6 +729,44 @@ public class PetManager {
         }
 
         return item;
+    }
+
+    @Nullable
+    public static LivingEntity getActivePet(@NotNull UUID ownerUUID) {
+        LivingEntity pet = ACTIVE_PETS.get(ownerUUID);
+        if (pet != null && pet.isDead()) {
+            ACTIVE_PETS.remove(ownerUUID);
+            return null;
+        }
+        return pet;
+    }
+
+    public static boolean isPetOwnedBy(@NotNull LivingEntity pet, @NotNull UUID ownerUUID) {
+        LivingEntity activePet = ACTIVE_PETS.get(ownerUUID);
+        return activePet != null && activePet.equals(pet);
+    }
+
+    public static boolean isManagedPet(@NotNull LivingEntity pet) {
+        UUID ownerUUID = getPetOwner(pet);
+        if (ownerUUID == null) {
+            return false;
+        }
+        return isPetOwnedBy(pet, ownerUUID);
+    }
+
+    public static void clearAllPets() {
+        for (LivingEntity pet : ACTIVE_PETS.values()) {
+            if (pet != null && !pet.isDead()) {
+                EffectUtils.playDespawnEffect(pet);
+                pet.remove();
+            }
+        }
+        ACTIVE_PETS.clear();
+    }
+
+    public static int getActivePetCount() {
+        ACTIVE_PETS.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().isDead());
+        return ACTIVE_PETS.size();
     }
 
     public static boolean isPetItem(@Nullable ItemStack item) {

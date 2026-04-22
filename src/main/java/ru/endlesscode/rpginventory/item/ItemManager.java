@@ -27,10 +27,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import io.lumine.mythic.core.players.PlayerData;
-import io.lumine.mythic.lib.api.stat.StatMap;
-import io.lumine.mythic.lib.api.stat.modifier.StatModifier;
-
 import ru.endlesscode.rpginventory.RPGInventory;
 import ru.endlesscode.rpginventory.event.listener.ItemListener;
 import ru.endlesscode.rpginventory.inventory.InventoryManager;
@@ -50,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 /**
  * Created by OsipXD on 18.09.2015
  * It is part of the RpgInventory.
@@ -130,7 +127,12 @@ public class ItemManager {
         double maxBonus = 0;
         float minMultiplier = 1;
         float maxMultiplier = 1;
+
         for (ItemStack item : effectiveItems) {
+            // Note: MMOItems stats are handled separately by StatsUpdater.injectMmoItemStats()
+            // to avoid conflicts with MythicLib's stat system
+
+            // Xử lý CustomItem và PetItem
             CustomItem customItem;
             ItemStat stat;
             if (!CustomItem.isCustomItem(item) || (customItem = ItemManager.getCustomItem(item)) == null
@@ -304,4 +306,7 @@ public class ItemManager {
 
         return lore;
     }
+
+    // Note: MMOItems stats are now handled exclusively by StatsUpdater.injectMmoItemStats()
+    // This avoids conflicts between RPGInventory's stat system and MythicLib's stat system
 }

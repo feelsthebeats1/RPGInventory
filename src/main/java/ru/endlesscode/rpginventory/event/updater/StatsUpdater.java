@@ -49,29 +49,6 @@ import java.util.*;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class StatsUpdater extends TrackedBukkitRunnable {
-    private static final String[] MYTHICLIB_STATS = new String[]{
-            SharedStat.ATTACK_DAMAGE,
-            SharedStat.WEAPON_DAMAGE,
-            SharedStat.PHYSICAL_DAMAGE,
-            SharedStat.PROJECTILE_DAMAGE,
-            SharedStat.MAGICAL_DAMAGE,
-            SharedStat.SPELL_CRITICAL_STRIKE_CHANCE,
-            SharedStat.SPELL_CRITICAL_STRIKE_POWER,
-            SharedStat.PVP_DAMAGE,
-            SharedStat.PVE_DAMAGE,
-            SharedStat.SKILL_DAMAGE,
-            SharedStat.ATTACK_SPEED,
-            SharedStat.MAX_HEALTH,
-            SharedStat.ARMOR,
-            SharedStat.ARMOR_TOUGHNESS,
-            SharedStat.DAMAGE_REDUCTION,
-            SharedStat.MOVEMENT_SPEED,
-            SharedStat.JUMP_STRENGTH,
-            SharedStat.CRITICAL_STRIKE_CHANCE,
-            SharedStat.CRITICAL_STRIKE_POWER,
-            SharedStat.COOLDOWN_REDUCTION
-    };
-
     private final Player player;
 
     public StatsUpdater() {
@@ -231,6 +208,7 @@ public class StatsUpdater extends TrackedBukkitRunnable {
         statMap.update(SharedStat.MAGICAL_DAMAGE);
         statMap.update(SharedStat.SPELL_CRITICAL_STRIKE_CHANCE);
         statMap.update(SharedStat.SPELL_CRITICAL_STRIKE_POWER);
+        statMap.update(SharedStat.ADDITIONAL_EXPERIENCE);
         statMap.update(SharedStat.COOLDOWN_REDUCTION);
         statMap.update(SharedStat.CRITICAL_STRIKE_CHANCE);
         statMap.update(SharedStat.CRITICAL_STRIKE_POWER);
@@ -254,29 +232,42 @@ public class StatsUpdater extends TrackedBukkitRunnable {
 
     private void injectMmoItemStats(Player player, StatMap statMap, String sourceKey) {
         Map<String, Double> bonuses = new HashMap<>();
-        List<ItemStack> items = new ArrayList<>();
-        items.addAll(InventoryAPI.getPassiveItems(player));
-        items.addAll(InventoryAPI.getActiveItems(player));
-        Collections.addAll(items, player.getInventory().getArmorContents());
-        items.add(player.getInventory().getItemInMainHand());
-        items.add(player.getInventory().getItemInOffHand());
+        Set<String> availableStats = new HashSet<>();
+        for (StatInstance instance : statMap.getInstances()) {
+            availableStats.add(instance.getStat());
+        }
 
-        for (ItemStack item : items) {
+        // Use identity-based tracking to avoid double-counting synced items
+        Set<IdentityWrapper> seenItems = new HashSet<>();
+
+        // First, add vanilla equipment items (these are the "real" equipped items)
+        List<ItemStack> vanillaItems = new ArrayList<>();
+        Collections.addAll(vanillaItems, player.getInventory().getArmorContents());
+        vanillaItems.add(player.getInventory().getItemInMainHand());
+        vanillaItems.add(player.getInventory().getItemInOffHand());
+
+        for (ItemStack item : vanillaItems) {
             if (ItemUtils.isEmpty(item)) {
                 continue;
             }
+            seenItems.add(new IdentityWrapper(item));
+            processMmoItemStats(item, bonuses, availableStats);
+        }
 
-            NBTItem nbt = NBTItem.get(item);
-            if (!nbt.hasType()) {
+        // Then, add custom slot items that are NOT synced to vanilla (not the same object)
+        List<ItemStack> customItems = new ArrayList<>();
+        customItems.addAll(InventoryAPI.getPassiveItems(player));
+        customItems.addAll(InventoryAPI.getActiveItems(player));
+
+        for (ItemStack item : customItems) {
+            if (ItemUtils.isEmpty(item)) {
                 continue;
             }
-
-            for (String stat : MYTHICLIB_STATS) {
-                double value = nbt.getStat(stat);
-                if (value != 0) {
-                    bonuses.merge(stat, value, Double::sum);
-                }
+            // Skip if this item is already counted from vanilla equipment
+            if (seenItems.contains(new IdentityWrapper(item))) {
+                continue;
             }
+            processMmoItemStats(item, bonuses, availableStats);
         }
 
         for (Map.Entry<String, Double> entry : bonuses.entrySet()) {
@@ -288,6 +279,47 @@ public class StatsUpdater extends TrackedBukkitRunnable {
             String key = sourceKey + ":mmoitems:" + entry.getKey().toLowerCase();
             instance.remove(key);
             instance.addModifier(new StatModifier(key, entry.getKey(), entry.getValue(), ModifierType.FLAT));
+            statMap.update(entry.getKey());
+        }
+    }
+
+    private void processMmoItemStats(ItemStack item, Map<String, Double> bonuses, Set<String> availableStats) {
+        NBTItem nbt = NBTItem.get(item);
+        if (!nbt.hasType()) {
+            return;
+        }
+
+        for (String stat : availableStats) {
+            double value = nbt.getStat(stat);
+            if (value != 0) {
+                bonuses.merge(stat, value, Double::sum);
+            }
+        }
+    }
+
+    /**
+     * Wrapper class for identity-based comparison of ItemStacks.
+     * This ensures we don't double-count items that are synced between
+     * custom slots and vanilla equipment slots.
+     */
+    private static class IdentityWrapper {
+        private final ItemStack item;
+
+        IdentityWrapper(ItemStack item) {
+            this.item = item;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            IdentityWrapper that = (IdentityWrapper) obj;
+            return this.item == that.item;  // Identity comparison, not equality
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(item);
         }
     }
 }

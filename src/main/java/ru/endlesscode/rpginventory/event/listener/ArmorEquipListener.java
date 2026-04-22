@@ -73,17 +73,21 @@ public class ArmorEquipListener implements Listener {
         }
 
         ArmorType armorType = ArmorType.matchType(item);
-        if (InventoryUtils.playerNeedArmor(player, armorType)) {
-            Slot armorSlot = SlotManager.instance().getSlot(armorType.name());
-            if (armorSlot == null) {
-                return;
-            }
+        if (armorType == ArmorType.UNKNOWN) {
+            return;
+        }
 
-            boolean armorIsValid = InventoryManager.validateArmor(player, InventoryAction.PLACE_ONE, armorSlot, item);
-            if (!armorIsValid) {
-                event.setUseItemInHand(Event.Result.DENY);
-                PlayerUtils.updateInventory(player);
-            }
+        // Original behavior: only block invalid equips, let vanilla/right-click proceed otherwise
+        Slot armorSlot = SlotManager.instance().getSlot(armorType.name());
+        if (armorSlot == null) {
+            return;
+        }
+
+        boolean armorIsValid = InventoryManager.validateArmor(player, InventoryAction.PLACE_ONE, armorSlot, item);
+        if (!armorIsValid) {
+            event.setUseItemInHand(Event.Result.DENY);
+            PlayerUtils.updateInventory(player);
+            event.setCancelled(true);
         }
     }
 

@@ -656,9 +656,9 @@ public class InventoryManager {
             InventoryManager.loadPlayerInventory(player);
         }
 
-        if (RPGInventory.getPermissions().has(player, "rpginventory.admin")) {
-            RPGInventory.getInstance().checkUpdates(player);
-        }
+        // if (RPGInventory.getPermissions().has(player, "rpginventory.admin")) {
+        //     RPGInventory.getInstance().checkUpdates(player);
+        // }
     }
 
     private enum ListType {

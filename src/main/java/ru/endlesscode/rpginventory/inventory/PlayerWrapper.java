@@ -267,6 +267,8 @@ public class PlayerWrapper implements InventoryHolder {
             player.getEquipment().setChestplate(this.inventory.getItem(elytraSlot.getSlotId()));
 
             this.flying = true;
+            // Update stats after elytra equip to recalculate armor stats
+            this.updateStatsLater();
         }
     }
 
@@ -291,11 +293,25 @@ public class PlayerWrapper implements InventoryHolder {
 
     private void stopFlight() {
         Slot elytraSlot = SlotManager.instance().getElytraSlot();
-        if (savedChestplate != null && elytraSlot != null) {
-            Player player = this.player.getPlayer();
+        if (elytraSlot == null) {
+            this.flying = false;
+            return;
+        }
+
+        Player player = this.player.getPlayer();
+        if (savedChestplate != null) {
+            // Put elytra back to custom slot and restore original chestplate
             this.inventory.setItem(elytraSlot.getSlotId(), player.getEquipment().getChestplate());
             player.getEquipment().setChestplate(this.savedChestplate);
             this.savedChestplate = null;
+
+            // Update stats after restoring chestplate
+            this.updateStatsLater();
+        } else {
+            // Fallback: if savedChestplate is null, just put elytra back to custom slot
+            // and clear the chestplate slot
+            this.inventory.setItem(elytraSlot.getSlotId(), player.getEquipment().getChestplate());
+            player.getEquipment().setChestplate(null);
         }
 
         this.flying = false;
@@ -314,9 +330,22 @@ public class PlayerWrapper implements InventoryHolder {
     }
 
     void onUnload() {
-        // Disabling of flight mode
+        // Disabling of flight mode and restore armor
         if (this.flying) {
-            this.setFalling(false);
+            // Fallback: restore armor if player disconnects while flying
+            Slot elytraSlot = SlotManager.instance().getElytraSlot();
+            if (elytraSlot != null && savedChestplate != null) {
+                Player player = this.player.getPlayer();
+                if (player != null) {
+                    // Put elytra back to custom slot
+                    this.inventory.setItem(elytraSlot.getSlotId(), player.getEquipment().getChestplate());
+                    // Restore original chestplate
+                    player.getEquipment().setChestplate(this.savedChestplate);
+                }
+                this.savedChestplate = null;
+            }
+            this.flying = false;
+            this.fallTime = 0;
         }
 
         this.clearStats();

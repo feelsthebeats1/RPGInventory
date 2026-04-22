@@ -18,21 +18,24 @@
 
 package ru.endlesscode.rpginventory;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.permission.Permission;
+import java.nio.file.Path;
+
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.endlesscode.inspector.bukkit.scheduler.TrackedBukkitRunnable;
+
+import com.comphenix.protocol.ProtocolLibrary;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 import ru.endlesscode.mimic.Mimic;
 import ru.endlesscode.mimic.MimicApiLevel;
 import ru.endlesscode.mimic.classes.BukkitClassSystem;
@@ -41,7 +44,13 @@ import ru.endlesscode.rpginventory.compat.VersionHandler;
 import ru.endlesscode.rpginventory.compat.mimic.RPGInventoryItemsRegistry;
 import ru.endlesscode.rpginventory.compat.mimic.RPGInventoryPlayerInventory;
 import ru.endlesscode.rpginventory.compat.mypet.MyPetManager;
-import ru.endlesscode.rpginventory.event.listener.*;
+import ru.endlesscode.rpginventory.event.listener.ArmorEquipListener;
+import ru.endlesscode.rpginventory.event.listener.ElytraListener;
+import ru.endlesscode.rpginventory.event.listener.HandSwapListener;
+import ru.endlesscode.rpginventory.event.listener.MmoItemsEquipListener;
+import ru.endlesscode.rpginventory.event.listener.MmoItemsListener;
+import ru.endlesscode.rpginventory.event.listener.PlayerListener;
+import ru.endlesscode.rpginventory.event.listener.WorldListener;
 import ru.endlesscode.rpginventory.inventory.InventoryLocker;
 import ru.endlesscode.rpginventory.inventory.InventoryManager;
 import ru.endlesscode.rpginventory.inventory.backpack.BackpackManager;
@@ -49,18 +58,14 @@ import ru.endlesscode.rpginventory.inventory.craft.CraftManager;
 import ru.endlesscode.rpginventory.inventory.slot.SlotManager;
 import ru.endlesscode.rpginventory.item.ItemManager;
 import ru.endlesscode.rpginventory.misc.FileLanguage;
-import ru.endlesscode.rpginventory.misc.Updater;
 import ru.endlesscode.rpginventory.misc.config.Config;
 import ru.endlesscode.rpginventory.misc.config.ConfigUpdater;
 import ru.endlesscode.rpginventory.misc.serialization.Serialization;
 import ru.endlesscode.rpginventory.pet.PetManager;
 import ru.endlesscode.rpginventory.resourcepack.ResourcePackModule;
 import ru.endlesscode.rpginventory.utils.Log;
-import ru.endlesscode.rpginventory.utils.PlayerUtils;
 import ru.endlesscode.rpginventory.utils.StringUtils;
 import ru.endlesscode.rpginventory.utils.Version;
-
-import java.nio.file.Path;
 
 public class RPGInventory extends JavaPlugin {
     private static RPGInventory instance;
@@ -163,7 +168,7 @@ public class RPGInventory extends JavaPlugin {
         this.getCommand("rpginventory").setExecutor(cmd);
         this.getCommand("rpginventory").setTabCompleter(cmd);
 
-        this.checkUpdates(null);
+        // this.checkUpdates(null);
     }
 
     private boolean initMimicSystems() {
@@ -239,6 +244,7 @@ public class RPGInventory extends JavaPlugin {
         pm.registerEvents(new PlayerListener(), this);
         pm.registerEvents(new WorldListener(), this);
         pm.registerEvents(new MmoItemsListener(), this);
+        pm.registerEvents(new MmoItemsEquipListener(), this);
 
         if (SlotManager.instance().getElytraSlot() != null) {
             pm.registerEvents(new ElytraListener(), this);
@@ -350,36 +356,36 @@ public class RPGInventory extends JavaPlugin {
         return economy != null;
     }
 
-    public void checkUpdates(@Nullable final Player player) {
-        if (!Config.getConfig().getBoolean("check-update")) {
-            return;
-        }
+    // public void checkUpdates(@Nullable final Player player) {
+    //     if (!Config.getConfig().getBoolean("check-update")) {
+    //         return;
+    //     }
 
-        new TrackedBukkitRunnable() {
-            @Override
-            public void run() {
-                Updater updater = new Updater(RPGInventory.instance, Updater.UpdateType.NO_DOWNLOAD);
-                if (updater.getResult() == Updater.UpdateResult.UPDATE_AVAILABLE) {
-                    String[] lines = {
-                            StringUtils.coloredLine("&3=================&b[&eRPGInventory&b]&3==================="),
-                            StringUtils.coloredLine("&6New version available: &a" + updater.getLatestName() + "&6!"),
-                            StringUtils.coloredLine(updater.getDescription()),
-                            StringUtils.coloredLine("&6Changelog: &e" + updater.getInfoLink()),
-                            StringUtils.coloredLine("&6Download it on &eSpigotMC&6!"),
-                            StringUtils.coloredLine("&3==================================================")
-                    };
+    //     new TrackedBukkitRunnable() {
+    //         @Override
+    //         public void run() {
+    //             Updater updater = new Updater(RPGInventory.instance, Updater.UpdateType.NO_DOWNLOAD);
+    //             if (updater.getResult() == Updater.UpdateResult.UPDATE_AVAILABLE) {
+    //                 String[] lines = {
+    //                         StringUtils.coloredLine("&3=================&b[&eRPGInventory&b]&3==================="),
+    //                         StringUtils.coloredLine("&6New version available: &a" + updater.getLatestName() + "&6!"),
+    //                         StringUtils.coloredLine(updater.getDescription()),
+    //                         StringUtils.coloredLine("&6Changelog: &e" + updater.getInfoLink()),
+    //                         StringUtils.coloredLine("&6Download it on &eSpigotMC&6!"),
+    //                         StringUtils.coloredLine("&3==================================================")
+    //                 };
 
-                    for (String line : lines) {
-                        if (player == null) {
-                            StringUtils.coloredConsole(line);
-                        } else {
-                            PlayerUtils.sendMessage(player, line);
-                        }
-                    }
-                }
-            }
-        }.runTaskAsynchronously(RPGInventory.getInstance());
-    }
+    //                 for (String line : lines) {
+    //                     if (player == null) {
+    //                         StringUtils.coloredConsole(line);
+    //                     } else {
+    //                         PlayerUtils.sendMessage(player, line);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }.runTaskAsynchronously(RPGInventory.getInstance());
+    // }
 
     private void updateConfig() {
         final Version version = Version.parseVersion(this.getDescription().getVersion());
